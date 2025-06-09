@@ -1,7 +1,4 @@
-from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,7 +6,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
 from seleniumbase import Driver 
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.support.ui import Select
 import time
 import os
 from dotenv import load_dotenv
@@ -44,7 +40,7 @@ try:
 
         # --- wait until a second window handle appears, then switch ---
     wait.until(lambda d: len(d.window_handles) > 1)
-    driver.switch_to.window(driver.window_handles[-1])   # Selenium-base: driver.switch_to_window(-1)
+    driver.switch_to.window(driver.window_handles[-1])
     time.sleep(5)
 
     email_box = wait.until(EC.element_to_be_clickable((By.ID, "i0116")))
@@ -85,7 +81,6 @@ try:
     time.sleep(10)
     search_bar = wait.until(EC.element_to_be_clickable((By.ID, 'topSearchInput')))
     search_bar.clear()
-    time.sleep(5)
     search_bar.send_keys(os.getenv('SEARCH_CONTENT'))
     search_bar.send_keys(os.getenv('SEARCH_CONTENT'), Keys.ENTER)
     print("Searched for content.")
@@ -101,7 +96,6 @@ except TimeoutException:
 
 try:
     time.sleep(3)
-    # By visible link text:
     link = wait.until(
         EC.element_to_be_clickable(
             (By.XPATH, '//div[@aria-label="Message body"]//a[1]')               # exact text
@@ -111,7 +105,7 @@ try:
 
     link.click()
     print("Clicked on the link.")
-except TimeoutException:
+except NoSuchElementException:
     print("Link not found.")
 
 
@@ -119,8 +113,8 @@ try:
     # time.sleep(15)
     #Shift to the next page
     wait.until(lambda d: len(d.window_handles) > 2)
-    driver.switch_to.window(driver.window_handles[-1])   # Selenium-base: driver.switch_to_window(-1)
-    time.sleep(5)
+    driver.switch_to.window(driver.window_handles[-1])
+    time.sleep(20)
 
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     print("Scrolling Done.")
@@ -129,14 +123,9 @@ try:
     )))
     first_link.click()
     print("Waiting for file to download...")
-    #Click on the download button to download xlsx file
-    # download_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.text-right.file-link')))
-    # download_btn.click()
-    # print("File Downloaded.")
     time.sleep(5)
     print("Process Done")
     driver.quit()
 except TimeoutException:
     print("Error after clicking on the link.")
     driver.quit()
-# driver.quit()
