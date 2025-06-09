@@ -1,0 +1,4 @@
+seleniumbase==4.*
+webdriver-manager==4.*
+python-dotenv==1.*
+pyotp==2.*
