@@ -4,13 +4,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
-from seleniumbase import Driver 
+from seleniumbase import Driver
 from selenium.common.exceptions import NoSuchElementException
 import time
 import os
 from dotenv import load_dotenv
 import pyotp
-from selenium.webdriver.common.action_chains import ActionChains
+import undetected_chromedriver as uc
 from datetime import datetime
 import sys
 
@@ -31,8 +31,26 @@ def get_otp(secret_key):
 
 # chrome_options = Options()
 # chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+#Download directory setup
+# DOWNLOAD_DIR = r"E:\LagReport\Backend\excelproject\excelfile"
+DOWNLOAD_DIR = r"S:\LagReport\Backend\excelproject\excelfile"
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
+#Chrome options with download prefs
+chrome_options = uc.ChromeOptions()
+prefs = {
+    "download.default_directory": DOWNLOAD_DIR,
+    "download.prompt_for_download": False,
+    "directory_upgrade": True,
+    "safebrowsing.enabled": True,
+}
+chrome_options.add_experimental_option("prefs", prefs)
+
+chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
 #Driver Setup
-driver = Driver(uc=True)
+# driver = Driver(uc=True)
+driver = uc.Chrome(options=chrome_options)
 driver.maximize_window()
 wait = WebDriverWait(driver, 60)
 shortWait = WebDriverWait(driver, 15)
@@ -40,7 +58,8 @@ shortWait = WebDriverWait(driver, 15)
 #Login
 try:
     web_url = "https://outlook.live.com/mail/0/"
-    driver.uc_open_with_reconnect(web_url, 4)
+    # driver.uc_open_with_reconnect(web_url, 4)
+    driver.get(web_url)
 
     print("Opening Website...")
             
@@ -126,7 +145,9 @@ try:
     search_bar.click()
     time.sleep(5)
     search_bar.clear()
+    # For testing purpose
     # search_bar.send_keys( "SECURE AmericanBenefitCorp INVENTORY '2025-06-09'")
+    
     #Dynamic search content
     search_date = datetime.today().strftime('%Y-%m-%d')
     search_bar.send_keys(f"SECURE AmericanBenefitCorp INVENTORY '{search_date}'")
@@ -155,7 +176,7 @@ try:
     # link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Click here")))     # exact text or By.PARTIAL_LINK_TEXT, 'Click'
     link = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Click here')]")))
     secure_url = link.get_attribute("href")
-    print("Opening secure URL directly: ", secure_url)
+    print("Opening secure URL directly: ")
     driver.get(secure_url)
 except NoSuchElementException:
     print("Link not found.")
@@ -182,4 +203,7 @@ try:
 except NoSuchElementException:
     print("Error occured while downloading file.")
     driver.quit()
+    sys.exit(1)
     
+    
+#Code Done

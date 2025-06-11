@@ -71,7 +71,7 @@ Create a **.env** file in the project root:
 EMAIL=your_outlook_email@example.com
 PASSWORD=your_outlook_password
 SECRET_KEY=BASE32TOTPSECRET123   # Used by pyotp to generate 6‑digit codes
-SEARCH_CONTENT=Rushikesh Borkar  # Sender, subject, or keyword to search
+SECURE_PASS = 'Secure Password'
 ```
 
 > **Security Tip** – Do **not** commit `.env` to version control. Add it to `.gitignore`.
@@ -138,4 +138,4 @@ This project is released under the **MIT License** — see the [LICENSE](LICENS
 
 ## ✍️ Author
 
-*Rushikesh Borkar* – Contact: `borkarrushi028@gmail.com` – Happy automating!
+*Rushikesh Borkar* – Contact: `borkarrushi028@gmail.com` !
