@@ -11,7 +11,8 @@ import os
 from dotenv import load_dotenv
 import pyotp
 from selenium.webdriver.common.action_chains import ActionChains
-import pyautogui
+from datetime import datetime
+import sys
 
 
 # #Function to get OTC
@@ -116,6 +117,7 @@ try:
 except TimeoutException:
     print("Login Timeout")
     driver.quit()
+    sys.exit(1)
     
 #Search
 try:
@@ -124,22 +126,32 @@ try:
     search_bar.click()
     time.sleep(5)
     search_bar.clear()
-    search_bar.send_keys( "SECURE AmericanBenefitCorp INVENTORY '2025-06-09'")
+    # search_bar.send_keys( "SECURE AmericanBenefitCorp INVENTORY '2025-06-09'")
+    #Dynamic search content
+    search_date = datetime.today().strftime('%Y-%m-%d')
+    search_bar.send_keys(f"SECURE AmericanBenefitCorp INVENTORY '{search_date}'")
     search_bar.send_keys(Keys.ENTER)
     print("Searched for content.")
 
-    time.sleep(6)
+    time.sleep(5)
     #Select the first one div
-    first_search = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@role="listbox"]//div[@data-focusable-row="true"][1]')))
-    first_search.click()
-    print("Selected first search result.")
+    try:
+        first_search = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@role="listbox"]//div[@data-focusable-row="true"][1]')))
+        first_search.click()
+        print("Selected first search result.")
+    except NoSuchElementException:
+        print("Searched mail not found.")
+        driver.quit()
+        sys.exit(1)
+        
 except TimeoutException:
     print("Error during finding email.")
     driver.quit()
+    sys.exit(1)
 
 #Get Link from the Email
 try:
-    time.sleep(5)
+    time.sleep(3)
     # link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Click here")))     # exact text or By.PARTIAL_LINK_TEXT, 'Click'
     link = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Click here')]")))
     secure_url = link.get_attribute("href")
@@ -147,52 +159,27 @@ try:
     driver.get(secure_url)
 except NoSuchElementException:
     print("Link not found.")
+    driver.quit()
+    sys.exit(1)
 
-# time.sleep(10)
-# wait.until(lambda d: len(d.window_handles) > 1)
-# driver.switch_to.window(driver.window_handles[-1])
-# time.sleep(5)
+try:
+    #Enter Password of the secure link
+    pass_field = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="dialog:password"]')))
+    pass_field.send_keys(os.getenv('SECURE_PASS'))
+    pass_field.send_keys(Keys.ENTER)
+    print("Secure password entered.")
 
-#Enter Password of the secure link
-pass_field = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="dialog:password"]')))
-pass_field.send_keys(os.getenv('SECURE_PASS'))
-pass_field.send_keys(Keys.ENTER)
-print("Secure password entered.")
+    #Download File
+    file_link = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[@class='header-attachment-item']/a[contains(text(), 'AmericanBenefitCorpINVENTORY_') and contains(text(), '.xlsx')]")))
+    file_link.click()
+    print("Clicked on file.")
 
-#Download File
-file_link = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[@class='header-attachment-item']/a[contains(text(), 'AmericanBenefitCorpINVENTORY_') and contains(text(), '.xlsx')]")))
-file_link.click()
-print("Clicked on file.")
-
-time.sleep(10)
-
-#Enter to download file in pc
-pyautogui.press('enter')
-
-print("Process Done")
-
-
-# #New WebPage Steps -- 
-# try:  
-#     # time.sleep(15)
-#     #Shift to the next page
-#     wait.until(lambda d: len(d.window_handles) > 2)
-#     driver.switch_to.window(driver.window_handles[-1])
-#     time.sleep(20)
-
-#     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-#     print("Scrolling Done.")
-#     first_link = wait.until(EC.element_to_be_clickable((
-#     By.XPATH, '/html/body/div[1]/main/section/div/div[2]/div/div/table/tbody/tr[3]/td[5]/a'
-#     )))
-#     first_link.click()
-#     print("Waiting for file to download...")
-#     time.sleep(5)
-#     print("Process Done")
-#     driver.quit()
-# except TimeoutException:
-#     print("Error after clicking on the link.")
-#     driver.quit()
-
-
-#Remember to add driver.quit() at every except block for proper error handling 
+    #Wait while file downloads
+    wait_time = 20
+    print(f"Waiting for {wait_time}s, while file is being downloaded.")
+    time.sleep(wait_time)
+    driver.quit()
+except NoSuchElementException:
+    print("Error occured while downloading file.")
+    driver.quit()
+    
